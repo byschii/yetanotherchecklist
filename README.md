@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Code Review Summary
 
-## Getting Started
+Good aspects:
+- Clean separation between ReadOnly and Editable modes
+- Proper TypeScript types
+- Good use of shadcn/ui components
+- Immutable state updates in model functions
+- Proper form handling with onSubmit
+- Accessibility considerations (aria-labels, proper form structure)
 
-First, run the development server:
+Issues & Suggestions:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Typo in filename
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+EditableCkeckList.tsx should be EditableChecklist.tsx (app/page.tsx:10)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. Missing persistence (as you noted)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Add localStorage/sessionStorage:
+// In app/page.tsx, replace initial state with:
+const [checkList, setCheckList] = useState<CheckList>(() => {
+if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('checklist');
+    if (saved) return JSON.parse(saved);
+}
+return { id: crypto.randomUUID(), title: "My Checklist", items: [] };
+});
 
-## Learn More
+// Add useEffect for persistence:
+useEffect(() => {
+localStorage.setItem('checklist', JSON.stringify(checkList));
+}, [checkList]);
 
-To learn more about Next.js, take a look at the following resources:
+3. Edge cases missed:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Empty title handling: Title can be cleared completely
+- XSS protection: No HTML sanitization for user input
+- UUID collision: Low probability but crypto.randomUUID() could theoretically collide
+- Memory leaks: No cleanup in useEffect
+- Hydration mismatch: SSR vs client localStorage mismatch
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. UX improvements:
 
-## Deploy on Vercel
+- No keyboard navigation for delete buttons
+- No undo functionality
+- No item reordering
+- No bulk operations (delete all completed)
+- No item editing after creation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Performance:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Re-renders entire list on any change
+- Consider useCallback for handlers passed to children
+
+6. Accessibility:
+
+- Missing focus management when switching modes
+- No skip links for keyboard users
+- Could benefit from ARIA live regions for dynamic updates
+
+Priority fixes: filename typo, persistence, title validation, and hydration handling.
