@@ -13,12 +13,16 @@ function ReadOnlyChecklist({
   setEditMode
 
 }: {
-  cl: CheckList;
+  cl: CheckList | null;
   onToggle: (cl: CheckList, id: string) => CheckList; // make optional if you want truly frozen
-  setCheckList: Dispatch<SetStateAction<CheckList>>
+  setCheckList: Dispatch<SetStateAction<CheckList|null>>
 
   setEditMode: Dispatch<SetStateAction<boolean>>
 }) {
+
+  const noChecklistComponent = <div className="text-gray-500">No checklist selected.</div>;
+  if (!cl) return noChecklistComponent;
+
   return (
     <main className="space-y-3">
         <header className="flex items-center justify-between">

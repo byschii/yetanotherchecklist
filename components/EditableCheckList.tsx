@@ -14,16 +14,17 @@ function EditableChecklist({
   setCheckList,
   setEditMode
 }: {
-  cl: CheckList;
+  cl: CheckList | null;
   onSubmit: (list: CheckList, text: string) => CheckList;
   onRemove: (list: CheckList, id: string) => CheckList;
-  setCheckList: Dispatch<SetStateAction<CheckList>>;
+  setCheckList: Dispatch<SetStateAction<CheckList|null>>;
   setEditMode: Dispatch<SetStateAction<boolean>>
 }) {
 
   const [newItemDraft, setNewItemDraft] = useState("");
 
-  
+  const noChecklistComponent = <div className="text-gray-500">No checklist selected.</div>;
+  if (!cl) return noChecklistComponent;
 
   return (
     <main className="space-y-3">
@@ -32,8 +33,10 @@ function EditableChecklist({
         <form>
           <Input 
             className="text-xl font-bold" 
-            value={cl.title} 
-            onChange={(e) => setCheckList(c => ({...c, title: e.target.value}))} />
+            value={cl.title}
+            onChange={(e) => setCheckList({...cl, title: e.target.value})}
+            onSubmit={(e) => e.preventDefault()}
+            />
         </form>
         <Button variant="outline" onClick={() => setEditMode(m => !m)}>
           <span className="flex items-center gap-2">
